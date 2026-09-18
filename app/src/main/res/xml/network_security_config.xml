@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- WEIRDNET never talks to a backend of its own, but this still governs any
+         TLS validation used by the transport/config-fetch helpers. Cleartext is
+         disabled by default; individual profiles specify their own TLS settings
+         (server certs, Reality fingerprints, etc.) inside their transport layer,
+         not at the OS network-security-config level. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

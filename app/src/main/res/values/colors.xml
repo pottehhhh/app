@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- WEIRDNET brand palette, sampled from the supplied logo -->
+    <color name="brand_black">#0A0A0C</color>
+    <color name="brand_surface">#121216</color>
+    <color name="brand_surface_alt">#1A1B20</color>
+    <color name="brand_ice_blue">#5FD0F0</color>
+    <color name="brand_ice_blue_dim">#2E8FB0</color>
+    <color name="brand_steel">#C7CCD1</color>
+    <color name="brand_steel_dim">#7B838C</color>
+    <color name="brand_crimson">#FF3B4E</color>
+    <color name="brand_crimson_dim">#B0202F</color>
+    <color name="brand_success">#3DDC97</color>
+    <color name="brand_warning">#FFB454</color>
+
+    <color name="launcher_background">#0A0A0C</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

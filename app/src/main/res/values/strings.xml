@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WEIRDNET</string>
+    <string name="app_tagline">Your network, weirdly private.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_profiles">Profiles</string>
+    <string name="nav_diagnostics">Diagnostics</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Connection states -->
+    <string name="state_disconnected">DISCONNECTED</string>
+    <string name="state_connecting">CONNECTING</string>
+    <string name="state_connected">CONNECTED</string>
+    <string name="state_disconnecting">DISCONNECTING</string>
+    <string name="state_error">CONNECTION ERROR</string>
+    <string name="action_connect">CONNECT</string>
+    <string name="action_disconnect">DISCONNECT</string>
+    <string name="action_cancel">CANCEL</string>
+
+    <!-- Home -->
+    <string name="label_no_profile">No profile selected</string>
+    <string name="label_download">Download</string>
+    <string name="label_upload">Upload</string>
+    <string name="label_duration">Connection time</string>
+    <string name="label_choose_profile">Choose a profile to connect</string>
+
+    <!-- Profiles -->
+    <string name="profiles_title">Profiles</string>
+    <string name="profiles_empty_title">No profiles yet</string>
+    <string name="profiles_empty_body">Add a profile via link, QR code, or file import to get started.</string>
+    <string name="action_add_profile">Add profile</string>
+    <string name="action_import_link">Paste link</string>
+    <string name="action_import_qr">Scan QR code</string>
+    <string name="action_import_file">Import file</string>
+    <string name="action_import_clipboard">Import from clipboard</string>
+
+    <!-- VPN service notification -->
+    <string name="vpn_notification_channel_name">VPN connection status</string>
+    <string name="vpn_notification_title_connected">WEIRDNET is connected</string>
+    <string name="vpn_notification_title_connecting">WEIRDNET is connecting…</string>
+    <string name="vpn_notification_disconnect_action">Disconnect</string>
+
+    <!-- Errors (examples referenced by ConnectionError) -->
+    <string name="error_invalid_configuration">Invalid configuration</string>
+    <string name="error_unsupported_protocol">Unsupported protocol</string>
+    <string name="error_missing_server">Missing server address</string>
+    <string name="error_invalid_port">Invalid port number</string>
+    <string name="error_invalid_uuid">Invalid UUID</string>
+    <string name="error_vpn_permission_denied">VPN permission denied</string>
+    <string name="error_core_failed_to_start">Core failed to start</string>
+    <string name="error_connection_timed_out">Connection timed out</string>
+    <string name="error_dns_resolution_failed">DNS resolution failed</string>
+    <string name="error_tunnel_failed">Tunnel failed to establish</string>
+
+    <!-- About -->
+    <string name="about_description">WEIRDNET is a modern Android network client designed for managing and connecting to supported VPN configurations.</string>
+</resources>

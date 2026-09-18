@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Required to draw the VPN tunnel and show its state -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Foreground service while the tunnel is active (Android 9+ requirement,
+         and a specific FGS type is mandatory on Android 14+/API 34). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- Android 13+ runtime permission for the connection-status notification -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Only requested at the moment the user opens the QR scanner, never eagerly -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
+    <!-- Lets the always-on-VPN "quick settings" affordance survive boot re-arm if the
+         user enabled Always-On VPN for WEIRDNET in system settings (optional, non-invasive). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:name=".WeirdNetApplication"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.WeirdNet"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        tools:targetApi="34">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.WeirdNet.Splash"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deep-link import: tapping a vless:// vmess:// trojan:// ss:// link
+                 anywhere on the device (browser, messaging app, etc.) opens WEIRDNET
+                 straight into the "review & save profile" screen. There is no
+                 "wireguard://" scheme here deliberately: unlike these four, no
+                 standardized WireGuard URI format exists in practice; real
+                 WireGuard configs are shared as .conf files or as QR codes
+                 encoding the raw config text, both of which WEIRDNET already
+                 supports (see the .conf intent-filter below, and QrScanScreen.kt). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="vless" />
+                <data android:scheme="vmess" />
+                <data android:scheme="trojan" />
+                <data android:scheme="ss" />
+            </intent-filter>
+
+            <!-- Opening a .conf file from a file manager or email attachment.
+                 Explicit "content"/"file" schemes are declared rather than relying
+                 on Android's implicit default for mimeType-only filters, since that
+                 default is easy to get subtly wrong across OEM file managers.
+                 NOTE: some document providers hand back opaque content:// URIs
+                 whose path never contains ".conf" at all, in which case this
+                 filter legitimately won't match; WEIRDNET's in-app "Import a
+                 file" picker (Settings-independent, always available from Add
+                 Profile) is the reliable path for those; see docs/TROUBLESHOOTING.md. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="*/*" android:pathPattern=".*\\.conf" />
+                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\.conf" />
+            </intent-filter>
+        </activity>
+
+        <!-- The VPN tunnel service. android:permission ties it to the platform's
+             VPN permission gate; foregroundServiceType is required on API 34+. -->
+        <service
+            android:name=".service.WeirdNetVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="VPN tunnel connection managed by the user" />
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".service.BootCompletedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+</manifest>
