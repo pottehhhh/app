@@ -1,0 +1,95 @@
+name: WEIRDNET Android Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify project layout
+        run: test -f "settings.gradle.kts"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: sdkmanager --install "ndk;27.0.12077973"
+
+      - name: Download pinned Xray native AAR
+        run: |
+          mkdir -p app/libs
+          gh release download v26.6.2 \
+            --repo 2dust/AndroidLibXrayLite \
+            --pattern "*.aar" \
+            --dir app/libs \
+            --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # hev-socks5-tunnel's official releases (as of tag 2.15.0) do not
+      # publish a prebuilt AAR -- that feature was only proposed upstream on
+      # 2026-09-01 (issue #327) and hasn't shipped in a tagged release yet.
+      # So we build it ourselves from source with the NDK and package a
+      # minimal, valid AAR by hand (native libs only -- WEIRDNET already
+      # ships its own hev.htproxy.TProxyService.kt shim, so no classes.jar
+      # is needed inside this AAR).
+      - name: Build hev-socks5-tunnel from source
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.0.12077973"
+          mkdir -p hev-build
+          cd hev-build
+          git clone --recursive https://github.com/heiher/hev-socks5-tunnel jni
+          "$ANDROID_NDK_HOME/ndk-build" APP_ABI=armeabi-v7a,arm64-v8a,x86,x86_64
+          cd ..
+
+          mkdir -p hev-aar/jni
+          for abi in armeabi-v7a arm64-v8a x86 x86_64; do
+            mkdir -p "hev-aar/jni/$abi"
+            cp "hev-build/libs/$abi/libhev-socks5-tunnel.so" "hev-aar/jni/$abi/"
+          done
+
+          cat > hev-aar/AndroidManifest.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="hev.htproxy" />
+          EOF
+
+          cd hev-aar
+          zip -r ../app/libs/hev-socks5-tunnel.aar AndroidManifest.xml jni
+          cd ..
+
+      - name: Verify native artifacts
+        run: |
+          ls -lh app/libs/*.aar
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Clean and run unit tests
+        run: ./gradlew --no-daemon clean :app:testDebugUnitTest
+
+      - name: Assemble debug APK
+        run: ./gradlew --no-daemon :app:assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: weirdnet-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
